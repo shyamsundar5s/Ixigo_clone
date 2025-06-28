@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Makemytrip - Travel Booking</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        
+        header {
+            background-color: #003580;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #e7eaf6;
+            padding: 10px;
+        }
+        
+        nav button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background: #dbe2ef;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        nav button.active {
+            background-color: #003580;
+            color: white;
+        }
+        
+        .form-section {
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .search-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            background-color: #003580;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .results {
+            max-width: 900px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-item {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-item h3 {
+            margin: 0 0 5px 0;
+        }
+        
+        .result-meta {
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .book-btn {
+            background-color: #0071c2;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        /* Modal styles */
+        
+        #auth-modal,
+        #booking-confirmation,
+        #seat-selection-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        
+        .modal-buttons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .close-btn,
+        .submit-btn {
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .close-btn {
+            background: #ccc;
+        }
+        
+        .submit-btn {
+            background: #003580;
+            color: white;
+        }
+        /* User Bar */
+        
+        #user-bar {
+            background: #003580;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #user-bar button {
+            background: #d9534f;
+            border: none;
+            padding: 5px 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        #login-btn {
+            margin: 10px;
+            background: #003580;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        /* Seat Selection Styles */
+        
+        #seat-selection-modal .modal-content {
+            max-width: 600px;
+        }
+        
+        #seat-map {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            justify-items: center;
+        }
+        
+        .seat {
+            width: 40px;
+            height: 40px;
+            background-color: #e7eaf6;
+            border-radius: 5px;
+            line-height: 40px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+        }
+        
+        .seat.booked {
+            background-color: #ccc;
+            cursor: not-allowed;
+            color: #777;
+        }
+        
+        .seat.selected {
+            background-color: #0071c2;
+            color: white;
+        }
+        
+        #seat-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Makemytrip</h1>
+    </header>
+
+    <div id="user-bar" style="display:none;">
+        <span id="user-name"></span>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <nav>
+        <button class="tab-btn active" onclick="switchTab('flight')">Flights</button>
+        <button class="tab-btn" onclick="switchTab('train')">Trains</button>
+        <button class="tab-btn" onclick="switchTab('bus')">Buses</button>
+        <button id="login-btn" onclick="openAuthModal('login')">Login / Signup</button>
+    </nav>
+
+    <section class="form-section">
+        <form id="search-form" onsubmit="return false;">
+            <div class="form-grid">
+                <div class="form-group">
+    <label for="from">From</label>
+    <input list="airport-options" id="from" autocomplete="off" required disabled />
+</div>
+<div class="form-group">
+    <label for="to">To</label>
+    <input list="airport-options" id="to" autocomplete="off" required disabled />
+</div>
+
+<datalist id="airport-options">
+    <option value="Delhi (DEL)">
+    <option value="Mumbai (BOM)">
+    <option value="Bangalore (BLR)">
+    <option value="Hyderabad (HYD)">
+    <option value="Chennai (MAA)">
+    <option value="Kolkata (CCU)">
+    <option value="Pune (PNQ)">
+    <option value="Ahmedabad (AMD)">
+    <option value="Goa (GOI)">
+    <option value="Jaipur (JAI)">
+</datalist>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required />
+                </div>
+                <div class="form-group">
+                    <label for="passengers">Passengers</label>
+                    <select id="passengers" required>
+          <option value="1">1 Adult</option>
+          <option value="2">2 Adults</option>
+          <option value="3">3 Adults</option>
+          <option value="4">Family (4+)</option>
+        </select>
+                </div>
+                <div class="form-group">
+                    <label for="class">Class</label>
+                    <select id="class" required>
+          <option value="Economy">Economy</option>
+          <option value="Business">Business</option>
+          <option value="First Class">First Class</option>
+        </select>
+                </div>
+            </div>
+            <button class="search-btn" onclick="handleSearch()">Search</button>
+        </form>
+    </section>
+
+    <section class="results" id="results"></section>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal">
+        <div class="modal-content">
+            <h2 id="auth-title">Login</h2>
+            <form id="auth-form" onsubmit="return false;">
+                <label for="auth-username">Username</label>
+                <input type="text" id="auth-username" autocomplete="off" required />
+                <label for="auth-password">Password</label>
+                <input type="password" id="auth-password" required />
+                <div class="modal-buttons">
+                    <button type="button" class="close-btn" onclick="closeAuthModal()">Cancel</button>
+                    <button type="submit" class="submit-btn" id="auth-submit-btn">Login</button>
+                </div>
+                <p style="margin-top: 15px; font-size: 0.9rem; text-align:center;">
+                    <span id="auth-toggle-text">Don't have an account? </span>
+                    <a href="#" id="auth-toggle-link" onclick="toggleAuthMode(event)">Sign up</a>
+                </p>
+                <p id="auth-message" style="color:red; text-align:center;"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOOKING CONFIRMATION MODAL -->
+    <div id="booking-confirmation">
+        <div class="modal-content">
+            <h2>Booking Confirmed</h2>
+            <div id="booking-details"></div>
+            <div class="modal-buttons">
+                <button class="close-btn" onclick="closeBookingModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEAT SELECTION MODAL -->
+    <div id="seat-selection-modal">
+        <div class="modal-content">
+            <h2>Select Your Seat(s)</h2>
+            <div id="seat-map"></div>
+            <div id="seat-info">Select seats as per number of passengers.</div>
+            <div class="modal-buttons">
+                <button class="close-btn" onclick="closeSeatModal()">Cancel</button>
+                <button class="submit-btn" onclick="confirmSeatSelection()">Confirm Seats</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+<!-- PAYMENT MODAL -->
+<div id="payment-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+    <div class="modal-content" style="max-width: 500px; margin: 100px auto; padding: 20px; border-radius: 10px;">
+        <h2>Payment Options</h2>
+        <form id="payment-form" onsubmit="return false;">
+            <label for="payment-method">Choose Payment Method</label>
+            <select id="payment-method" onchange="togglePaymentFields()" required style="width:100%; padding:8px; margin-bottom:10px;">
+                <option value="">Select Method</option>
+                <option value="gpay">GPay</option>
+                <option value="credit">Credit Card</option>
+                <option value="debit">Debit Card</option>
+                <option value="netbanking">Net Banking</option>
+            </select>
+
+            <!-- GPay -->
+            <div class="payment-fields" id="gpay-fields" style="display:none;">
+                <label for="gpay-id">GPay UPI ID</label>
+                <input type="text" id="gpay-id" placeholder="example@okaxis" style="width:100%; padding:8px;" />
+            </div>
+
+            <!-- Card Fields -->
+            <div class="payment-fields" id="card-fields" style="display:none;">
+                <label for="card-name">Cardholder Name</label>
+                <input type="text" id="card-name" style="width:100%; padding:8px;" />
+
+                <label for="card-number">Card Number</label>
+                <input type="text" id="card-number" maxlength="16" style="width:100%; padding:8px;" />
+
+                <label for="card-expiry">Expiry Date</label>
+                <input type="month" id="card-expiry" style="width:100%; padding:8px;" />
+
+                <label for="card-cvv">CVV</label>
+                <input type="text" id="card-cvv" maxlength="3" style="width:100%; padding:8px;" />
+            </div>
+
+            <!-- Net Banking -->
+            <div class="payment-fields" id="netbanking-fields" style="display:none;">
+                <label for="bank-name">Select Bank</label>
+                <select id="bank-name" style="width:100%; padding:8px;">
+                    <option value="">--Choose Bank--</option>
+                    <option value="SBI">SBI</option>
+                    <option value="HDFC">HDFC</option>
+                    <option value="ICICI">ICICI</option>
+                    <option value="Axis">Axis Bank</option>
+                    <option value="Kotak">Kotak Mahindra</option>
+                </select>
+            </div>
+
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" class="close-btn" onclick="closePaymentModal()">Cancel</button>
+                <button type="submit" class="submit-btn" onclick="processPayment()">Pay Now</button>
+            </div>
+            <p id="payment-message" style="color:red; margin-top: 10px;"></p>
+        </form>
+    </div>
+</div>
+
+
+
+    <script>
+        function togglePaymentFields() {
+    const method = document.getElementById('payment-method').value;
+
+    document.getElementById('gpay-fields').style.display = 'none';
+    document.getElementById('card-fields').style.display = 'none';
+    document.getElementById('netbanking-fields').style.display = 'none';
+
+    if (method === 'gpay') {
+        document.getElementById('gpay-fields').style.display = 'block';
+    } else if (method === 'credit' || method === 'debit') {
+        document.getElementById('card-fields').style.display = 'block';
+    } else if (method === 'netbanking') {
+        document.getElementById('netbanking-fields').style.display = 'block';
+    }
+}
+
+function processPayment() {
+    const method = document.getElementById('payment-method').value;
+    const msg = document.getElementById('payment-message');
+    msg.innerText = '';
+
+    if (!method) {
+        msg.innerText = "Please select a payment method.";
+        return;
+    }
+
+    if (method === 'gpay') {
+        const upi = document.getElementById('gpay-id').value.trim();
+        if (!upi || !upi.includes('@')) {
+            msg.innerText = "Please enter a valid UPI ID.";
+            return;
+        }
+    } else if (method === 'credit' || method === 'debit') {
+        const name = document.getElementById('card-name').value.trim();
+        const number = document.getElementById('card-number').value.trim();
+        const expiry = document.getElementById('card-expiry').value;
+        const cvv = document.getElementById('card-cvv').value.trim();
+
+        if (!name || !number || !expiry || !cvv) {
+            msg.innerText = "Please fill all card details.";
+            return;
+        }
+        if (!/^\d{16}$/.test(number) || !/^\d{3}$/.test(cvv)) {
+            msg.innerText = "Invalid card number or CVV.";
+            return;
+        }
+    } else if (method === 'netbanking') {
+        const bank = document.getElementById('bank-name').value;
+        if (!bank) {
+            msg.innerText = "Please select a bank.";
+            return;
+        }
+    }
+
+    // Simulate processing...
+    setTimeout(() => {
+        closePaymentModal();
+        confirmBooking(currentBookingDetails, selectedSeats);
+    }, 1000);
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').style.display = 'none';
+}
+<!-- Add inside your <body>, near other modals -->
+<!-- PAYMENT MODAL -->
+<div id="payment-modal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+    <div class="modal-content" style="max-width: 500px; margin: 100px auto; padding: 20px; border-radius: 10px;">
+        <h2>Payment Details</h2>
+        <form id="payment-form" onsubmit="return false;">
+            <label>Cardholder Name</label>
+            <input type="text" id="card-name" required style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+
+            <label>Card Number</label>
+            <input type="text" id="card-number" required maxlength="16" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+
+            <label>Expiry Date</label>
+            <input type="month" id="card-expiry" required style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+
+            <label>CVV</label>
+            <input type="text" id="card-cvv" required maxlength="3" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+
+            <div class="modal-buttons">
+                <button type="button" class="close-btn" onclick="closePaymentModal()">Cancel</button>
+                <button type="submit" class="submit-btn" onclick="processPayment()">Pay Now</button>
+            </div>
+        </form>
+        <p id="payment-message" style="color:red; margin-top: 10px;"></p>
+    </div>
+</div>
+
+
+
+    // Simulate payment delay
+    setTimeout(() => {
+        closePaymentModal();
+        confirmBooking(currentBookingDetails, selectedSeats);
+    }, 1000);
+
+
+        // Simple in-memory "database" for users and bookings (simulate persistence with localStorage)
+        const storageKeyUsers = 'mmt-users';
+        const storageKeyBookings = 'mmt-bookings';
+
+        // Logged in user
+        let loggedInUser = null;
+
+        // Current tab (flight/train/bus)
+        let currentTab = 'flight';
+
+        // Store currently booking details for seat selection
+        let currentBookingDetails = null;
+        let selectedSeats = [];
+
+        // Seat map configs
+        const seatConfig = {
+            flight: {
+                rows: 10,
+                seatsPerRow: 6,
+                seatLabels: ['A', 'B', 'C', 'D', 'E', 'F']
+            },
+            bus: {
+                rows: 8,
+                seatsPerRow: 4,
+                seatLabels: ['A', 'B', 'C', 'D']
+            }
+        };
+
+        // Utility functions for localStorage persistence
+        function loadUsers() {
+            const usersJSON = localStorage.getItem(storageKeyUsers);
+            return usersJSON ? JSON.parse(usersJSON) : [];
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(storageKeyUsers, JSON.stringify(users));
+        }
+
+        function loadBookings() {
+            const bookingsJSON = localStorage.getItem(storageKeyBookings);
+            return bookingsJSON ? JSON.parse(bookingsJSON) : [];
+        }
+
+        function saveBookings(bookings) {
+            localStorage.setItem(storageKeyBookings, JSON.stringify(bookings));
+        }
+
+        // Login/Signup Functions
+        function openAuthModal(mode) {
+            document.getElementById('auth-modal').style.display = 'block';
+            const title = document.getElementById('auth-title');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleLink = document.getElementById('auth-toggle-link');
+            document.getElementById('auth-message').innerText = '';
+            document.getElementById('auth-form').reset();
+
+            if (mode === 'login') {
+                title.innerText = 'Login';
+                submitBtn.innerText = 'Login';
+                toggleText.innerText = "Don't have an account? ";
+                toggleLink.innerText = 'Sign up';
+            } else {
+                title.innerText = 'Sign Up';
+                submitBtn.innerText = 'Sign Up';
+                toggleText.innerText = "Already have an account? ";
+                toggleLink.innerText = 'Login';
+            }
+            document.getElementById('auth-form').onsubmit = mode === 'login' ? handleLogin : handleSignup;
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function toggleAuthMode(event) {
+            event.preventDefault();
+            const currentMode = document.getElementById('auth-title').innerText.toLowerCase();
+            if (currentMode === 'login') openAuthModal('signup');
+            else openAuthModal('login');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const users = loadUsers();
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                loggedInUser = user;
+                closeAuthModal();
+                updateUserBar();
+                alert(`Welcome back, ${username}!`);
+            } else {
+                document.getElementById('auth-message').innerText = 'Invalid username or password.';
+            }
+        }
+
+        function handleSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            if (username.length < 3 || password.length < 4) {
+                document.getElementById('auth-message').innerText = 'Username must be 3+ chars, password 4+ chars.';
+                return;
+            }
+            const users = loadUsers();
+            if (users.some(u => u.username === username)) {
+                document.getElementById('auth-message').innerText = 'Username already exists.';
+                return;
+            }
+            users.push({
+                username,
+                password
+            });
+            saveUsers(users);
+            alert('Signup successful! Please login.');
+            openAuthModal('login');
+        }
+
+        function logout() {
+            loggedInUser = null;
+            updateUserBar();
+        }
+
+        function updateUserBar() {
+    const userBar = document.getElementById('user-bar');
+    const loginBtn = document.getElementById('login-btn');
+    const inputs = document.querySelectorAll('#from, #to, #date, #passengers, #class, .search-btn');
+
+    if (loggedInUser) {
+        userBar.style.display = 'flex';
+        loginBtn.style.display = 'none';
+        document.getElementById('user-name').innerText = `Hello, ${loggedInUser.username}`;
+        inputs.forEach(input => input.disabled = false);
+    } else {
+        userBar.style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        inputs.forEach(input => input.disabled = true);
+    }
+}
+
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Search & show results
+        function handleSearch() {
+            const from = document.getElementById('from').value.trim();
+            const to = document.getElementById('to').value.trim();
+            const date = document.getElementById('date').value;
+            const passengers = parseInt(document.getElementById('passengers').value, 10);
+            const travelClass = document.getElementById('class').value;
+
+            if (!from || !to || !date) {
+                alert('Please fill all required fields.');
+                return;
+            }
+            if (new Date(date) < new Date(new Date().toISOString().split('T')[0])) {
+                alert('Date cannot be in the past.');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            // Number of items
+            const count = currentTab === 'flight' ? 20 : currentTab === 'train' ? 15 : 29;
+
+            let html = `<h2>${count} ${capitalize(currentTab)}${count > 1 ? 's' : ''} found:</h2>`;
+
+            for (let i = 1; i <= count; i++) {
+                const departureTime = randomTime();
+                const durationHrs = randomBetween(1, 5);
+                const price = randomBetween(1000, 5000);
+                const vehicleNum = currentTab === 'flight' ? `FL${1000+i}` :
+                    currentTab === 'train' ? `TR${5000+i}` :
+                    `BS${8000+i}`;
+
+                html += `
+        <div class="result-item">
+          <div>
+            <h3>${capitalize(currentTab)} ${i} - ${from} to ${to}</h3>
+            <p class="result-meta">
+              Departure: ${date} ${departureTime} | Duration: ${durationHrs}h | Class: ${travelClass} | Price: ₹${price}
+            </p>
+          </div>
+          <button class="book-btn" onclick="startBooking(${i}, '${vehicleNum}', '${from}', '${to}', '${date}', '${departureTime}', ${durationHrs}, '${travelClass}', ${passengers}, ${price})">Book Now</button>
+        </div>
+      `;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Start booking process: show seat selection for flight/bus, else confirm booking immediately
+        function startBooking(id, vehicleNum, from, to, date, departureTime, durationHrs, travelClass, passengers, price) {
+            if (!loggedInUser) {
+                alert('Please login to book tickets.');
+                openAuthModal('login');
+                return;
+            }
+
+            currentBookingDetails = {
+                id,
+                vehicleNum,
+                from,
+                to,
+                date,
+                departureTime,
+                durationHrs,
+                travelClass,
+                passengers,
+                price,
+                user: loggedInUser.username
+            };
+
+            if (currentTab === 'flight' || currentTab === 'bus') {
+                openSeatSelectionModal(currentTab, currentBookingDetails);
+            } else {
+                // Train booking no seat selection for now
+                openPaymentModal(currentBookingDetails, []);
+            }
+        }
+
+        // Open seat selection modal with seat map for flight/bus
+        function openSeatSelectionModal(type, bookingDetails) {
+            selectedSeats = [];
+            const modal = document.getElementById('seat-selection-modal');
+            const seatMap = document.getElementById('seat-map');
+            seatMap.innerHTML = '';
+            const config = seatConfig[type];
+
+            // Load booked seats for this vehicle on this date
+            const bookings = loadBookings();
+            const bookedSeats = new Set();
+            bookings.forEach(b => {
+                if (b.vehicleNum === bookingDetails.vehicleNum && b.date === bookingDetails.date) {
+                    b.seats.forEach(s => bookedSeats.add(s));
+                }
+            });
+
+            // Create seats grid
+            for (let row = 1; row <= config.rows; row++) {
+                for (let col = 0; col < config.seatsPerRow; col++) {
+                    const seatLabel = `${row}${config.seatLabels[col]}`;
+                    const seatDiv = document.createElement('div');
+                    seatDiv.classList.add('seat');
+                    seatDiv.textContent = seatLabel;
+
+                    if (bookedSeats.has(seatLabel)) {
+                        seatDiv.classList.add('booked');
+                    } else {
+                        seatDiv.onclick = () => toggleSeatSelection(seatDiv, seatLabel);
+                    }
+                    seatMap.appendChild(seatDiv);
+                }
+            }
+            document.getElementById('seat-info').innerText = `Select ${bookingDetails.passengers} seat${bookingDetails.passengers > 1 ? 's' : ''}.`;
+
+            modal.style.display = 'block';
+        }
+
+        function toggleSeatSelection(seatDiv, seatLabel) {
+            const maxSeats = currentBookingDetails.passengers;
+            if (seatDiv.classList.contains('selected')) {
+                seatDiv.classList.remove('selected');
+                selectedSeats = selectedSeats.filter(s => s !== seatLabel);
+            } else {
+                if (selectedSeats.length >= maxSeats) {
+                    alert(`You can select up to ${maxSeats} seat${maxSeats > 1 ? 's' : ''}.`);
+                    return;
+                }
+                seatDiv.classList.add('selected');
+                selectedSeats.push(seatLabel);
+            }
+        }
+
+        function closeSeatModal() {
+            selectedSeats = [];
+            document.getElementById('seat-selection-modal').style.display = 'none';
+        }
+
+        function confirmSeatSelection() {
+            if (selectedSeats.length !== currentBookingDetails.passengers) {
+                alert(`Please select exactly ${currentBookingDetails.passengers} seat${currentBookingDetails.passengers > 1 ? 's' : ''}.`);
+                return;
+            }
+            closeSeatModal();
+            openPaymentModal(currentBookingDetails, selectedSeats);
+        }
+
+        // Confirm booking, save to bookings and show confirmation modal
+        function confirmBooking(details, seats) {
+            const bookings = loadBookings();
+
+            // Generate random PNR code
+            const pnr = generatePNR();
+
+            const bookingRecord = {
+                pnr,
+                user: details.user,
+                vehicleNum: details.vehicleNum,
+                type: currentTab,
+                from: details.from,
+                to: details.to,
+                date: details.date,
+                departureTime: details.departureTime,
+                durationHrs: details.durationHrs,
+                travelClass: details.travelClass,
+                passengers: details.passengers,
+                price: details.price,
+                seats
+            };
+
+            bookings.push(bookingRecord);
+            saveBookings(bookings);
+
+            // Show confirmation modal
+            const confModal = document.getElementById('booking-confirmation');
+            const confDetails = document.getElementById('booking-details');
+
+            let seatStr = seats.length ? seats.join(', ') : 'No seat selection';
+            confDetails.innerHTML = `
+      <p><strong>PNR:</strong> ${pnr}</p>
+      <p><strong>Type:</strong> ${capitalize(currentTab)}</p>
+      <p><strong>Vehicle Number:</strong> ${details.vehicleNum}</p>
+      <p><strong>Route:</strong> ${details.from} to ${details.to}</p>
+      <p><strong>Date & Time:</strong> ${details.date} at ${details.departureTime}</p>
+      <p><strong>Class:</strong> ${details.travelClass}</p>
+      <p><strong>Passengers:</strong> ${details.passengers}</p>
+      <p><strong>Seats:</strong> ${seatStr}</p>
+      <p><strong>Total Price:</strong> ₹${details.price}</p>
+      <p><em>Thank you for booking with Makemytrip!</em></p>
+    `;
+            confModal.style.display = 'block';
+        }
+
+        function closeBookingModal() {
+            document.getElementById('booking-confirmation').style.display = 'none';
+        }
+
+        // Utility functions
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function randomTime() {
+            const h = randomBetween(0, 23);
+            const m = randomBetween(0, 59);
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+        }
+
+        function randomBetween(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generatePNR() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let pnr = '';
+            for (let i = 0; i < 6; i++) {
+                pnr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return pnr;
+        }
+
+        // On load
+        updateUserBar();
+    </script>
+
+</body>
+
+</html>
